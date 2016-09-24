@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/template"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/Luzifer/worktime/schema"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // showCmd represents the show command
@@ -34,6 +36,13 @@ var showCmd = &cobra.Command{
 			return err
 		}
 
+		if viper.GetBool("json") {
+			return json.NewEncoder(os.Stdout).Encode(struct {
+				Day      schema.Day `json:"day"`
+				Overtime float64    `json:"overtime"`
+			}{Day: *doc, Overtime: overtime.Value})
+		}
+
 		tplSrc, err := Asset("templates/show.tpl")
 		if err != nil {
 			return err
@@ -54,6 +63,9 @@ var showCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(showCmd)
+
+	showCmd.Flags().Bool("json", false, "Prints day in JSON instead of human readable text")
+	viper.BindPFlag("json", showCmd.Flags().Lookup("json"))
 
 	// Here you will define your flags and configuration settings.
 
