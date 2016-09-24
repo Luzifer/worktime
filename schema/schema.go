@@ -117,7 +117,7 @@ func LoadDay(db *couch.Client, date time.Time, mayCreate bool) (*Day, error) {
 	doc := &Day{}
 	if err := db.Get(id, doc); err != nil {
 		if strings.Contains(err.Error(), "not_found") && mayCreate {
-			doc = &Day{DayID: id}
+			doc = &Day{DayID: id, Times: []*Time{}}
 		} else {
 			return nil, err
 		}
