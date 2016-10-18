@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Luzifer/go_helpers/str"
+	"github.com/cnf/structhash"
 	couch "github.com/lancecarlson/couchgo"
 )
 
@@ -22,6 +23,8 @@ const (
 	TagAutotrack  = "autotrack"
 	TagOnCall     = "on-call"
 )
+
+const schemaVersion = 1
 
 func evalTags(tags []string, tag string) []string {
 	rawTag := strings.TrimLeft(tag, "+-")
@@ -64,6 +67,8 @@ type Day struct {
 	IsHoliday  bool `json:"is_holiday,omitempty"`
 	IsEvent    bool `json:"is_event,omitempty"`
 	Homeoffice bool `json:"homeoffice,omitempty"`
+
+	initialHash string `hash:"-"`
 }
 
 func (d *Day) Tag(tag string) {
@@ -123,6 +128,8 @@ func LoadDay(db *couch.Client, date time.Time, mayCreate bool) (*Day, error) {
 		}
 	}
 	doc.migrate()
+
+	doc.initialHash = fmt.Sprintf("%x", structhash.Sha1(doc, schemaVersion))
 	return doc, nil
 }
 
@@ -131,12 +138,20 @@ func (d *Day) Save(db *couch.Client) error {
 		return err
 	}
 
+	if !d.hasChanged() {
+		return nil
+	}
+
 	res, err := db.Save(d)
 	if err != nil {
 		return err
 	}
 	d.Revision = res.Rev
 	return nil
+}
+
+func (d *Day) hasChanged() bool {
+	return d.initialHash != fmt.Sprintf("%x", structhash.Sha1(d, schemaVersion))
 }
 
 type Time struct {
