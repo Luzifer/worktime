@@ -9,6 +9,10 @@
 			"Rev": "d76f718bb2d7d043fdf9dfdc01af03f20047432b"
 		},
 		{
+			"ImportPath": "github.com/cnf/structhash",
+			"Rev": "f5315d4d2328a72285a323bf0542c3fb182634b7"
+		},
+		{
 			"ImportPath": "github.com/fsnotify/fsnotify",
 			"Comment": "v1.3.1-1-gf12c623",
 			"Rev": "f12c6236fe7b5cf6bcf30e5935d08cb079d78334"
