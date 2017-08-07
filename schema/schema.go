@@ -187,23 +187,32 @@ func (w *Time) migrate() {
 }
 
 func (t *Time) validate() error {
-	now := time.Now().Format("15:04:05")
-	if t.Start == "now" {
-		t.Start = now
-	}
-	if t.End == "now" {
-		t.End = now
-	}
-
-	if _, err := time.Parse("15:04:05", t.Start); err != nil {
+	var err error
+	if t.Start, err = t.sanitizeTime(t.Start); err != nil {
 		return fmt.Errorf("Time %.7s has invalid start date: %s", t.ID, err)
 	}
 
-	if _, err := time.Parse("15:04:05", t.End); err != nil {
+	if t.End, err = t.sanitizeTime(t.End); err != nil {
 		return fmt.Errorf("Time %.7s has invalid end date: %s", t.ID, err)
 	}
 
 	return nil
+}
+
+func (t *Time) sanitizeTime(in string) (string, error) {
+	if in == "now" {
+		return time.Now().Format("15:04:05"), nil
+	}
+
+	if t, err := time.Parse("15:04", in); err == nil {
+		return t.Format("15:04:05"), nil
+	}
+
+	if _, err := time.Parse("15:04:05", in); err == nil {
+		return in, nil
+	}
+
+	return "", fmt.Errorf("Date does not comply format 15:04 or 15:04:05")
 }
 
 type Overtime struct {
