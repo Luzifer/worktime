@@ -21,7 +21,7 @@ var showCmd = &cobra.Command{
 			args = []string{time.Now().Format("2006-01-02")}
 		}
 
-		day, err := time.Parse("2006-01-02", args[0])
+		day, err := parseTime("2006-01-02", args[0])
 		if err != nil {
 			return fmt.Errorf("'day' parameter seems to have a wrong format: %s", err)
 		}

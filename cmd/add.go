@@ -18,7 +18,7 @@ var addCmd = &cobra.Command{
 			return fmt.Errorf("Please supply required arguments")
 		}
 
-		day, err := time.Parse("2006-01-02", args[0])
+		day, err := parseTime("2006-01-02", args[0])
 		if err != nil {
 			return fmt.Errorf("'day' parameter seems to have a wrong format: %s", err)
 		}
