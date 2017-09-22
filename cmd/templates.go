@@ -39,14 +39,20 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 
 type asset struct {
 	bytes []byte
-	info  os.FileInfo
+	info  fileInfoEx
+}
+
+type fileInfoEx interface {
+	os.FileInfo
+	MD5Checksum() string
 }
 
 type bindataFileInfo struct {
-	name    string
-	size    int64
-	mode    os.FileMode
-	modTime time.Time
+	name        string
+	size        int64
+	mode        os.FileMode
+	modTime     time.Time
+	md5checksum string
 }
 
 func (fi bindataFileInfo) Name() string {
@@ -61,6 +67,9 @@ func (fi bindataFileInfo) Mode() os.FileMode {
 func (fi bindataFileInfo) ModTime() time.Time {
 	return fi.modTime
 }
+func (fi bindataFileInfo) MD5Checksum() string {
+	return fi.md5checksum
+}
 func (fi bindataFileInfo) IsDir() bool {
 	return false
 }
@@ -68,7 +77,14 @@ func (fi bindataFileInfo) Sys() interface{} {
 	return nil
 }
 
-var _templatesShowTpl = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x84\x90\xb1\x8a\xc3\x30\x10\x44\x7b\x7d\xc5\x60\xb8\xf2\x74\xe5\xc1\x81\x3a\xbb\x70\x75\x85\xf3\x03\x0b\x96\x8d\x20\x92\x83\xa4\x04\x8c\xd8\x7f\x0f\x2b\x39\x90\xa4\x89\xab\x9d\xf5\xcc\xec\x43\xc6\x18\x83\xe9\xea\x3d\xc5\x1d\xdb\x82\x52\xa0\x67\xda\x75\x4f\xfb\xd8\x83\x19\x62\x50\x27\x5a\xd3\x9f\xfc\x8b\x14\x56\xdb\x1c\xb2\x03\xb3\x04\xc4\x57\x0a\xec\x39\x59\x30\x87\x1f\x12\x11\x66\x30\x2b\x55\x0a\xdc\x72\x24\x9c\xb7\x09\xdf\xcc\x6a\xec\xd1\xbe\x29\x53\xcc\x75\x1a\xc2\x7c\xec\xa4\xf8\xed\x54\x0d\x32\x4b\xd9\x25\xba\x90\x17\x74\x5f\xfa\x37\x75\xd0\x0d\xb2\x62\xb7\xae\x87\x1a\xea\x7d\x3c\x41\x4b\xef\x27\xde\x57\x70\x19\x05\xf7\xff\x66\x63\x76\xde\xd6\x27\xd0\xdb\xa1\xc4\x75\x0f\x00\x00\xff\xff\x0d\x5c\x07\xed\x3f\x01\x00\x00")
+var _templatesShowTpl = []byte(
+	"\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x90\xb1\x8a\xc3\x30\x10\x44\x7b\x7d\xc5\x60\xb8\xf2\x74\xe5\xc1\x81" +
+	"\x3a\xbb\x70\x75\x85\xf3\x03\x0b\x96\x8d\x20\x92\x83\xa4\x04\x8c\xd8\x7f\x0f\x2b\x39\x90\xa4\x89\xab\x9d\xf5\xcc" +
+	"\xec\x43\xc6\x18\x83\xe9\xea\x3d\xc5\x1d\xdb\x82\x52\xa0\x67\xda\x75\x4f\xfb\xd8\x83\x19\x62\x50\x27\x5a\xd3\x9f" +
+	"\xfc\x8b\x14\x56\xdb\x1c\xb2\x03\xb3\x04\xc4\x57\x0a\xec\x39\x59\x30\x87\x1f\x12\x11\x66\x30\x2b\x55\x0a\xdc\x72" +
+	"\x24\x9c\xb7\x09\xdf\xcc\x6a\xec\xd1\xbe\x29\x53\xcc\x75\x1a\xc2\x7c\xec\xa4\xf8\xed\x54\x0d\x32\x4b\xd9\x25\xba" +
+	"\x90\x17\x74\x5f\xfa\x37\x75\xd0\x0d\xb2\x62\xb7\xae\x87\x1a\xea\x7d\x3c\x41\x4b\xef\x27\xde\x57\x70\x19\x05\xf7" +
+	"\xff\x66\x63\x76\xde\xd6\x27\xd0\xdb\xa1\xc4\x75\x0f\x00\x00\xff\xff\x0d\x5c\x07\xed\x3f\x01\x00\x00")
 
 func templatesShowTplBytes() ([]byte, error) {
 	return bindataRead(
@@ -83,7 +99,7 @@ func templatesShowTpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/show.tpl", size: 319, mode: os.FileMode(436), modTime: time.Unix(1474552026, 0)}
+	info := bindataFileInfo{name: "templates/show.tpl", size: 319, md5checksum: "", mode: os.FileMode(436), modTime: time.Unix(1474552026, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -100,7 +116,7 @@ func Asset(name string) ([]byte, error) {
 		}
 		return a.bytes, nil
 	}
-	return nil, fmt.Errorf("Asset %s not found", name)
+	return nil, &os.PathError{Op: "open", Path: name, Err: os.ErrNotExist}
 }
 
 // MustAsset is like Asset but panics when Asset would return an error.
@@ -126,7 +142,7 @@ func AssetInfo(name string) (os.FileInfo, error) {
 		}
 		return a.info, nil
 	}
-	return nil, fmt.Errorf("AssetInfo %s not found", name)
+	return nil, &os.PathError{Op: "open", Path: name, Err: os.ErrNotExist}
 }
 
 // AssetNames returns the names of the assets.
@@ -164,12 +180,12 @@ func AssetDir(name string) ([]string, error) {
 		for _, p := range pathList {
 			node = node.Children[p]
 			if node == nil {
-				return nil, fmt.Errorf("Asset %s not found", name)
+				return nil, &os.PathError{Op: "open", Path: name, Err: os.ErrNotExist}
 			}
 		}
 	}
 	if node.Func != nil {
-		return nil, fmt.Errorf("Asset %s not found", name)
+		return nil, &os.PathError{Op: "open", Path: name, Err: os.ErrNotExist}
 	}
 	rv := make([]string, 0, len(node.Children))
 	for childName := range node.Children {
@@ -182,9 +198,10 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
-	"templates": &bintree{nil, map[string]*bintree{
-		"show.tpl": &bintree{templatesShowTpl, map[string]*bintree{}},
+	"templates": {nil, map[string]*bintree{
+		"show.tpl": {templatesShowTpl, map[string]*bintree{}},
 	}},
 }}
 
@@ -206,11 +223,7 @@ func RestoreAsset(dir, name string) error {
 	if err != nil {
 		return err
 	}
-	err = os.Chtimes(_filePath(dir, name), info.ModTime(), info.ModTime())
-	if err != nil {
-		return err
-	}
-	return nil
+	return os.Chtimes(_filePath(dir, name), info.ModTime(), info.ModTime())
 }
 
 // RestoreAssets restores an asset under the given directory recursively
@@ -234,4 +247,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-
