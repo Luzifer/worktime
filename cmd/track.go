@@ -8,8 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Luzifer/worktime/schema"
 	"github.com/spf13/cobra"
+
+	"github.com/Luzifer/worktime/schema"
 )
 
 // trackCmd represents the track command
@@ -17,13 +18,25 @@ var trackCmd = &cobra.Command{
 	Use:   "track [tag [tag]]",
 	Short: "Track a time frame from the command start until interruption",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		start := time.Now()
+		var (
+			c     = make(chan os.Signal, 1)
+			start = time.Now()
+			run   = true
+		)
 
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		fmt.Println("Press Ctrl+C to stop time tracking...")
 
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		<-c // Blocks until a signal arrives
+		for run {
+			select {
+			case <-c: // Blocks until a signal arrives
+				run = false
+
+			case <-time.Tick(time.Second):
+				fmt.Printf("\r\x1b[K")
+				fmt.Printf("Tracking since %s (%s)...", start.Format(time.RFC1123), time.Since(start))
+			}
+		}
 
 		end := time.Now()
 
